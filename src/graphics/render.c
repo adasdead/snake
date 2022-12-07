@@ -7,34 +7,34 @@
 
 #include "glad/glad.h"
 
-static int          _initialized = 0;
+static int    _initialized = 0;
 
-static GLuint       _VAO, _VBO;
-static GLuint       _shader_program = 0;
+static GLuint _VAO, _VBO;
+static GLuint _shader_program = 0;
 
-static mat4_t       _projection = { 0.0f };
+static mat4_t _projection = { 0.0f };
 
 static char *_vertex_string =
-    "#version 300 es\n" \
-    "layout(location = 0) in vec2 _pos;\n" \
-    "uniform mat4 _proj;\n" \
-    "uniform mat4 _model;\n" \
-    "uniform vec4 _color;\n" \
-    "out vec4 color;\n" \
-    "void main()\n" \
-    "{\n" \
-    "   gl_Position = _proj * _model * vec4(_pos, 0.0f, 1.0f);\n" \
-    "   color = _color;\n" \
+    "#version 300 es\n"                                             \
+    "layout(location = 0) in vec2 _pos;\n"                          \
+    "uniform mat4 _proj;\n"                                         \
+    "uniform mat4 _model;\n"                                        \
+    "uniform vec4 _color;\n"                                        \
+    "out vec4 color;\n"                                             \
+    "void main()\n"                                                 \
+    "{\n"                                                           \
+    "   gl_Position = _proj * _model * vec4(_pos, 0.0f, 1.0f);\n"   \
+    "   color = _color;\n"                                          \
     "}\n";
 
 static char *_fragment_string =
-    "#version 300 es\n" \
-    "precision mediump float;\n" \
-    "out vec4 fragColor;\n" \
-    "in vec4 color;\n" \
-    "void main()\n" \
-    "{\n" \
-    "   fragColor = color;\n" \
+    "#version 300 es\n"                                             \
+    "precision mediump float;\n"                                    \
+    "out vec4 fragColor;\n"                                         \
+    "in vec4 color;\n"                                              \
+    "void main()\n"                                                 \
+    "{\n"                                                           \
+    "   fragColor = color;\n"                                       \
     "}\n";
 
 static int _render_check_shader(GLuint shader)
@@ -44,8 +44,7 @@ static int _render_check_shader(GLuint shader)
 
     glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
 
-    if (!status)
-    {
+    if (!status) {
         glGetShaderInfoLog(shader, 1024, NULL, info_log);
         fprintf(stderr, "%s\n", info_log);
     }
@@ -65,8 +64,9 @@ static int _render_init_shader(void)
 
     glCompileShader(vertex_shader);
 
-    if (!_render_check_shader(vertex_shader))
+    if (!_render_check_shader(vertex_shader)) {
         return 0;
+    }
 
     fragment_shader = glCreateShader(GL_FRAGMENT_SHADER);
 
@@ -76,8 +76,9 @@ static int _render_init_shader(void)
     
     glCompileShader(fragment_shader);
 
-    if (!_render_check_shader(fragment_shader))
+    if (!_render_check_shader(fragment_shader)) {
         return 0;
+    }
 
     _shader_program = glCreateProgram();
     glAttachShader(_shader_program, fragment_shader);
@@ -86,7 +87,6 @@ static int _render_init_shader(void)
 
     glDeleteShader(fragment_shader);
     glDeleteShader(vertex_shader);
-
     return 1;
 }
 
@@ -94,18 +94,15 @@ int render_init(proc_adr_fn proc_fn)
 {
     int status = 1;
 
-    static GLfloat vertices[] =
-    {
+    static const GLfloat vertices[] = {
         0.0f, 1.0f, 1.0f, 0.0f,
         0.0f, 0.0f, 0.0f, 1.0f,
         1.0f, 1.0f, 1.0f, 0.0f,
     };
 
-    if (!gladLoadGLLoader(proc_fn))
+    if (!(gladLoadGLLoader(proc_fn) && _render_init_shader())) {
         return 0;
-
-    if (!_render_init_shader())
-        return 0;
+    }
 
     glGenVertexArrays(1, &_VAO);
     glGenBuffers(1, &_VBO);
@@ -156,25 +153,25 @@ void render_clear(color_t color)
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void render_rect(color_t clr, float x, float y,
-                              float sx, float sy)
+void render_rect(color_t color, float x, float y, float sx, float sy)
 {
-    if (!_initialized) return;
-
     float model_mtrx[4][4] = {0.0f};
+    GLuint proj, model, _color;
+
+    if (!_initialized) return;
 
     math_to_unit_mtrx(model_mtrx);
     math_scale_mtrx(model_mtrx, sx, sy);
     math_translate_mtrx(model_mtrx, x, y);
 
-    GLint proj = glGetUniformLocation(_shader_program, "_proj");
+    proj = glGetUniformLocation(_shader_program, "_proj");
     glUniformMatrix4fv(proj, 1, GL_FALSE, (float*)_projection);
 
-    GLint model = glGetUniformLocation(_shader_program, "_model");
+    model = glGetUniformLocation(_shader_program, "_model");
     glUniformMatrix4fv(model, 1, GL_FALSE, (float*)model_mtrx);
 
-    GLint color = glGetUniformLocation(_shader_program, "_color");
-    glUniform4f(color, clr.r, clr.g, clr.b, clr.a);
+    _color = glGetUniformLocation(_shader_program, "_color");
+    glUniform4f(_color, color.r, color.g, color.b, color.a);
 
     glUseProgram(_shader_program);
     glBindVertexArray(_VAO);

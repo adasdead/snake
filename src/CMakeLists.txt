@@ -8,7 +8,6 @@ target_sources(snake PRIVATE
     game/application.c
     game/snake.c
 
-    graphics/color.c
     graphics/render.c
     graphics/math.c
 

@@ -5,7 +5,7 @@
 #include "game/snake.h"
 #include "game/food.h"
 
-static snake_t            _snake;
+static snake_t            *_snake;
 static food_t             _snake_food;
 
 static float              _snake_move_timer = 0.0f;
@@ -14,7 +14,7 @@ static snake_direction_t  _snake_cur_dir;
 
 void application_init(void)
 {
-    _snake = new_snake();
+    _snake = snake_new();
     _snake_cur_dir = SNAKE_DIR_RIGHT;
     
     food_move_random(&_snake_food, _snake);
@@ -30,16 +30,13 @@ void application_loop(float delta)
     {
         snake_move_forward(_snake, _snake_cur_dir);
 
-        if (snake_is_overlap(_snake, _snake_food))
-        {
+        if (snake_is_overlap(_snake, &_snake_food)) {
             food_move_random(&_snake_food, _snake);
-            snake_restore_rm_part(_snake);
+            snake_restore_part(_snake);
         }
 
-        if (!_snake->alive)
-        {
+        if (!_snake->is_alive) {
             _snake_cur_dir = SNAKE_DIR_RIGHT;
-            
             snake_reset(_snake);
         }
 
@@ -51,8 +48,7 @@ void application_loop(float delta)
 
 void application_on_key(int key)
 {
-    switch (key)
-    {
+    switch (key) {
     case GLFW_KEY_W:
     case GLFW_KEY_UP:
         _snake_cur_dir = SNAKE_DIR_UP;

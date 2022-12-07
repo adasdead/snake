@@ -11,8 +11,6 @@ void render_viewport(int width, int height);
 void render_gl_viewport(int width, int height);
 
 void render_clear(color_t color);
-
-void render_rect(color_t color, float x, float y,
-                 float sx, float sy);
+void render_rect(color_t color, float x, float y, float sx, float sy);
 
 #endif /* GRAPHICS_RENDER_H */
